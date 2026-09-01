@@ -10,6 +10,9 @@ import { createDefaultAdjustments } from '@/lib/defaults';
 import { evaluateTask, isLatestRender, parseProgress, PROGRESS_KEY, validateImageFile } from '@/lib/learning';
 import { LESSONS } from '@/lib/lessons';
 import type { AdjustmentState, ProgressState, WorkerResponse } from '@/lib/types';
+// Vite 会在构建时为 ?worker 模块生成默认导出的 Worker 构造器。
+// oxlint-disable-next-line import/default
+import ImageWorker from '@/workers/image-worker.ts?worker';
 
 /** 色彩暗房的完整单页学习工作台。 */
 export function ColorLab() {
@@ -29,6 +32,9 @@ export function ColorLab() {
   const adjustedCanvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<Worker | null>(null);
   const requestRef = useRef(0);
+  const renderInFlightRef = useRef(false);
+  const pendingRenderRef = useRef<AdjustmentState | null>(null);
+  const sendRenderRef = useRef<(state: AdjustmentState) => void>(() => undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const lesson = LESSONS.find((item) => item.id === currentLessonId) ?? LESSONS[0];
@@ -51,12 +57,34 @@ export function ColorLab() {
   }, [completedLessons, currentLessonId, hydrated]);
 
   useEffect(() => {
-    const worker = new Worker(new URL('../workers/image-worker.ts', import.meta.url), { type: 'module' });
+    const worker = new ImageWorker();
     workerRef.current = worker;
+
+    /** 向 Worker 发送一次渲染，并标记当前仅有的处理中任务。 */
+    const sendRender = (state: AdjustmentState) => {
+      const requestId = requestRef.current + 1;
+      requestRef.current = requestId;
+      renderInFlightRef.current = true;
+      setRendering(true);
+      worker.postMessage({ type: 'render', requestId, adjustments: state });
+    };
+    sendRenderRef.current = sendRender;
+
     worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
       const message = event.data;
-      if (!isLatestRender(message.requestId, requestRef.current)) return;
+      const isLatest = isLatestRender(message.requestId, requestRef.current);
+      renderInFlightRef.current = false;
+
+      // 连续拖动时只保留最新参数，避免 Worker 逐个计算已经过时的中间值。
+      const pending = pendingRenderRef.current;
+      if (pending) {
+        pendingRenderRef.current = null;
+        sendRender(pending);
+        return;
+      }
+
       setRendering(false);
+      if (!isLatest) return;
       if (message.type === 'error') return setImageError(message.message);
       const canvas = adjustedCanvasRef.current;
       if (!canvas) return;
@@ -64,12 +92,25 @@ export function ColorLab() {
       canvas.height = message.height;
       canvas.getContext('2d')?.putImageData(new ImageData(new Uint8ClampedArray(message.buffer), message.width, message.height), 0, 0);
     };
-    return () => worker.terminate();
+    worker.onerror = () => {
+      renderInFlightRef.current = false;
+      pendingRenderRef.current = null;
+      setRendering(false);
+      setImageError('图像处理线程运行失败，请刷新页面后重试');
+    };
+    return () => {
+      worker.terminate();
+      workerRef.current = null;
+      sendRenderRef.current = () => undefined;
+      renderInFlightRef.current = false;
+      pendingRenderRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
     let cancelled = false;
     requestRef.current += 1;
+    pendingRenderRef.current = null;
     setImageReady(false);
     setImageError('');
     const loadImage = async () => {
@@ -113,10 +154,12 @@ export function ColorLab() {
 
   useEffect(() => {
     if (!imageReady) return;
-    const requestId = requestRef.current + 1;
-    requestRef.current = requestId;
-    setRendering(true);
-    workerRef.current?.postMessage({ type: 'render', requestId, adjustments });
+    if (renderInFlightRef.current) {
+      pendingRenderRef.current = adjustments;
+      setRendering(true);
+      return;
+    }
+    sendRenderRef.current(adjustments);
   }, [adjustments, imageReady]);
 
   useEffect(() => {

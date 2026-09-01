@@ -53,6 +53,12 @@ export function bandWeight(hue: number, center: number): number {
   return Math.max(0, 1 - angularDistance(hue, center) / 60);
 }
 
+/** 按原有饱和度比例增减，确保中性灰和低饱和颜色不会被凭空染色。 */
+export function scaleSaturation(saturation: number, amount: number): number {
+  const safeAmount = Math.min(100, Math.max(-100, amount));
+  return clamp01(saturation * (1 + safeAmount / 100));
+}
+
 /** 把曲线控制点线性插值为 256 项查找表。 */
 export function buildCurveLut(points: CurvePoint[]): Uint8ClampedArray {
   const safePoints = [...points]
@@ -94,22 +100,22 @@ export function applyAdjustments(source: Uint8ClampedArray, state: AdjustmentSta
 
     let [hue, saturation, lightness] = rgbToHsl(red, green, blue);
     hue = (hue + state.hue + 360) % 360;
-    saturation = clamp01(saturation + state.saturation / 100);
+    saturation = scaleSaturation(saturation, state.saturation);
     lightness = clamp01(lightness + state.lightness / 200);
 
     let hueShift = 0;
-    let saturationShift = 0;
+    let saturationAmount = 0;
     let lightnessShift = 0;
     for (const band of COLOR_BANDS) {
       const weight = bandWeight(hue, band.center);
       const adjustment = state.bands[band.id];
       hueShift += adjustment.hue * weight;
-      saturationShift += (adjustment.saturation / 100) * weight;
+      saturationAmount += adjustment.saturation * weight;
       lightnessShift += (adjustment.lightness / 200) * weight;
     }
     [red, green, blue] = hslToRgb(
       hue + hueShift,
-      clamp01(saturation + saturationShift),
+      scaleSaturation(saturation, saturationAmount),
       clamp01(lightness + lightnessShift),
     );
 
