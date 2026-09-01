@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+body { font-family: var(--font-geist-sans), "Microsoft YaHei", sans-serif; }
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.135 0.012 255);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.18 0.014 255);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.79 0.11 211);
+  --primary-foreground: oklch(0.16 0.02 241);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.23 0.018 255);
+  --muted-foreground: oklch(0.69 0.018 250);
+  --accent: oklch(0.27 0.025 243);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.79 0.11 211);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer components {
+  .studio-grid { @apply mx-auto grid min-h-[calc(100vh-4rem)] max-w-[1680px] grid-cols-[220px_minmax(0,1fr)_310px] bg-background; }
+  .lesson-rail { @apply flex flex-col border-r border-white/7 p-5; }
+  .workbench { @apply min-w-0 p-5 lg:p-7; }
+  .control-panel { @apply border-l border-white/7 bg-black/10 p-5 lg:p-6; }
+  .eyebrow { @apply text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground; }
+  .lesson-item { @apply flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:bg-white/[0.035]; }
+  .lesson-item-active { @apply border-cyan-300/15 bg-cyan-300/[0.065]; }
+  .image-stage { @apply relative w-full overflow-hidden rounded-[22px] border border-white/10 bg-black shadow-2xl shadow-black/30; }
+  .observation-card { @apply rounded-xl border border-white/7 bg-white/[0.025] p-3.5; }
+  .task-card { @apply mt-7 rounded-2xl border border-white/8 bg-white/[0.035] p-4; }
+  .spectrum-line { @apply my-6 h-px w-full opacity-70; background: linear-gradient(90deg,#ff5d5d,#ffc857,#79df82,#58d7e8,#748cff,#d56de8,#ff5d5d); }
+  .brand-mark { @apply relative block size-8 rounded-full; background: conic-gradient(from 30deg,#f85b5b,#f3ce58,#55d69b,#4bcce6,#7278ec,#e267ca,#f85b5b); box-shadow: inset 0 0 0 8px rgba(13,17,23,.72); }
+  .color-wheel-ring { background: conic-gradient(from -90deg,#f05b5b,#f2b34f,#d9dc5a,#65ce74,#52cad0,#628ce6,#a56ee1,#e45cab,#f05b5b); box-shadow: inset 0 0 0 28px var(--background), 0 0 28px rgba(82,202,208,.08); }
+}
+
+@media (max-width: 1100px) {
+  .studio-grid { grid-template-columns: 180px minmax(0,1fr); }
+  .control-panel { @apply col-span-2 grid grid-cols-2 gap-6 border-l-0 border-t border-white/7; }
+}
+
+@media (max-width: 720px) {
+  .studio-grid { @apply flex flex-col; }
+  .lesson-rail { @apply order-3 border-r-0 border-t border-white/7; }
+  .workbench { @apply order-1; }
+  .control-panel { @apply order-2 block border-t border-white/7; }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
