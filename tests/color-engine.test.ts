@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { angularDistance, applyAdjustments, bandWeight, buildCurveLut, hslToRgb, rgbToHsl, scaleSaturation } from '../lib/color-engine';
+import { angularDistance, applyAdjustments, bandWeight, buildCurveLut, hslToRgb, remapHarmonyHue, rgbToHsl, scaleSaturation } from '../lib/color-engine';
 import { createDefaultAdjustments } from '../lib/defaults';
 
 describe('色彩基础计算', () => {
@@ -26,6 +26,12 @@ describe('色彩基础计算', () => {
     expect(bandWeight(120, 120)).toBe(1);
     expect(bandWeight(150, 120)).toBe(0.5);
     expect(bandWeight(181, 120)).toBe(0);
+  });
+
+  it('第三章色轮将两个锚点附近的色相软映射到目标位置', () => {
+    expect(remapHarmonyHue(195, 220, 40)).toBeCloseTo(220, 5);
+    expect(remapHarmonyHue(165, 220, 40)).toBeCloseTo(177.5, 5);
+    expect(remapHarmonyHue(110, 220, 20)).toBe(110);
   });
 });
 
@@ -69,5 +75,17 @@ describe('曲线与像素管线', () => {
     state.temperature = -30;
     const result = applyAdjustments(source, state);
     expect(result[2]).toBeGreaterThan(result[0]);
+  });
+
+  it('第三章移动主色色相会改变对应像素并保持透明度', () => {
+    const sourceRgb = hslToRgb(195, 0.7, 0.5);
+    const source = new Uint8ClampedArray([...sourceRgb.map((channel) => Math.round(channel * 255)), 149]);
+    const state = createDefaultAdjustments();
+    state.harmonyBase = 230;
+
+    const result = applyAdjustments(source, state);
+    const [resultHue] = rgbToHsl(result[0] / 255, result[1] / 255, result[2] / 255);
+    expect(angularDistance(resultHue, 230)).toBeLessThan(2);
+    expect(result[3]).toBe(149);
   });
 });

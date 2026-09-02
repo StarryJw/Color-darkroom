@@ -1,5 +1,9 @@
 import type { AdjustmentState, ColorBand } from './types';
 
+/** 第三章教学样片中主色与强调色的原始色相锚点。 */
+export const DEFAULT_HARMONY_BASE = 195;
+export const DEFAULT_HARMONY_ACCENT = 40;
+
 export const COLOR_BANDS: Array<{ id: ColorBand; label: string; center: number; color: string }> = [
   { id: 'red', label: '红', center: 0, color: '#f15b5b' },
   { id: 'orange', label: '橙', center: 35, color: '#f29d49' },
@@ -18,8 +22,8 @@ export function createDefaultAdjustments(): AdjustmentState {
     lightness: 0,
     temperature: 0,
     tint: 0,
-    harmonyBase: 195,
-    harmonyAccent: 40,
+    harmonyBase: DEFAULT_HARMONY_BASE,
+    harmonyAccent: DEFAULT_HARMONY_ACCENT,
     bands: {
       red: emptyBand(),
       orange: emptyBand(),

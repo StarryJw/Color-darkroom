@@ -1,4 +1,4 @@
-import { COLOR_BANDS } from './defaults';
+import { COLOR_BANDS, DEFAULT_HARMONY_ACCENT, DEFAULT_HARMONY_BASE } from './defaults';
 import type { AdjustmentState, CurvePoint } from './types';
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
@@ -8,6 +8,18 @@ const clampByte = (value: number) => Math.min(255, Math.max(0, Math.round(value)
 export function angularDistance(a: number, b: number): number {
   const difference = Math.abs(((a - b) % 360 + 360) % 360);
   return Math.min(difference, 360 - difference);
+}
+
+const signedHueDelta = (from: number, to: number) => ((to - from + 540) % 360) - 180;
+
+/** 将样片中接近默认主色和强调色的像素，软映射到色轮选择的目标色相。 */
+export function remapHarmonyHue(hue: number, base: number, accent: number): number {
+  const baseWeight = bandWeight(hue, DEFAULT_HARMONY_BASE);
+  const accentWeight = bandWeight(hue, DEFAULT_HARMONY_ACCENT);
+  const mapped = hue
+    + signedHueDelta(DEFAULT_HARMONY_BASE, base) * baseWeight
+    + signedHueDelta(DEFAULT_HARMONY_ACCENT, accent) * accentWeight;
+  return ((mapped % 360) + 360) % 360;
 }
 
 /** 将 sRGB 转为 HSL，返回值范围分别为 0-360、0-1、0-1。 */
@@ -102,6 +114,9 @@ export function applyAdjustments(source: Uint8ClampedArray, state: AdjustmentSta
     hue = (hue + state.hue + 360) % 360;
     saturation = scaleSaturation(saturation, state.saturation);
     lightness = clamp01(lightness + state.lightness / 200);
+
+    // 第三章以样片中的蓝绿色和橙色为锚点；三角权重让邻近色平滑过渡。
+    hue = remapHarmonyHue(hue, state.harmonyBase, state.harmonyAccent);
 
     let hueShift = 0;
     let saturationAmount = 0;
