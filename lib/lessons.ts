@@ -1,9 +1,12 @@
 import type { LessonDefinition } from './types';
 
+/** 为 public 目录资源补上 Vite 部署基路径，兼容本地开发与 GitHub Pages 子路径。 */
+const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 export const LESSONS: LessonDefinition[] = [
   {
     id: 'color-dimensions', chapter: '第一章', shortTitle: '色彩三属性', title: '看见颜色的三个维度',
-    sample: '/samples/lesson-1.webp', sampleAlt: '中性日光中的多色桌面静物', sampleLabel: '中性光 · 多色静物',
+    sample: publicAsset('samples/lesson-1.webp'), sampleAlt: '中性日光中的多色桌面静物', sampleLabel: '中性光 · 多色静物',
     conceptTitle: '饱和度不是“颜色多少”',
     concept: '色相回答“是什么颜色”，饱和度描述颜色偏离灰色的程度，明度则决定它有多亮。一次只改变一个维度，更容易建立视觉记忆。',
     observe: '先找出画面中最醒目的颜色，再观察灰布是否仍然保持中性。',
@@ -17,7 +20,7 @@ export const LESSONS: LessonDefinition[] = [
   },
   {
     id: 'white-balance', chapter: '第二章', shortTitle: '白平衡', title: '让中性色重新中性',
-    sample: '/samples/lesson-2.webp', sampleAlt: '暖钨丝灯下的咖啡桌与白色陶瓷杯', sampleLabel: '钨丝灯 · 暖色偏移',
+    sample: publicAsset('samples/lesson-2.webp'), sampleAlt: '暖钨丝灯下的咖啡桌与白色陶瓷杯', sampleLabel: '钨丝灯 · 暖色偏移',
     conceptTitle: '白平衡先找“应该中性”的物体',
     concept: '色温沿蓝—黄方向移动，色调沿绿—洋红方向移动。判断白平衡时，先寻找白杯、灰卡等本应接近中性的参照。',
     observe: '比较白杯高光和灰卡，它们是否被同一种暖黄色覆盖。',
@@ -31,7 +34,7 @@ export const LESSONS: LessonDefinition[] = [
   },
   {
     id: 'color-harmony', chapter: '第三章', shortTitle: '色彩关系', title: '用色相距离理解画面张力',
-    sample: '/samples/lesson-3.webp', sampleAlt: '蓝绿色木门与橙色墙面的街景', sampleLabel: '街景 · 蓝橙互补',
+    sample: publicAsset('samples/lesson-3.webp'), sampleAlt: '蓝绿色木门与橙色墙面的街景', sampleLabel: '街景 · 蓝橙互补',
     conceptTitle: '互补色来自色轮两端',
     concept: '色相相差约 180° 时形成互补关系，对比强、注意力集中；相邻色更和谐，适合营造统一氛围。',
     observe: '观察橙墙占据的大面积与蓝绿门的较小面积，面积并不相等但视觉仍然平衡。',
@@ -42,7 +45,7 @@ export const LESSONS: LessonDefinition[] = [
   },
   {
     id: 'selective-hsl', chapter: '第四章', shortTitle: '分颜色 HSL', title: '只调整需要改变的颜色',
-    sample: '/samples/lesson-4.webp', sampleAlt: '暖色衣服的人像与绿色植物背景', sampleLabel: '人像 · 暖肤色与绿色背景',
+    sample: publicAsset('samples/lesson-4.webp'), sampleAlt: '暖色衣服的人像与绿色植物背景', sampleLabel: '人像 · 暖肤色与绿色背景',
     conceptTitle: '局部颜色调整需要软边界',
     concept: '真实照片中的颜色不会整齐地落在单一色相上。六色带采用柔和重叠，调整绿色时也会轻微影响相邻的黄色和青色。',
     observe: '先看背景叶片，再检查肤色与橙色衣服是否被连带改变。',
@@ -56,7 +59,7 @@ export const LESSONS: LessonDefinition[] = [
   },
   {
     id: 'curves-grading', chapter: '第五章', shortTitle: '曲线与色调', title: '用明暗结构承载冷暖情绪',
-    sample: '/samples/lesson-5.webp', sampleAlt: '蓝调时刻中带暖色灯光的河岸城市', sampleLabel: '蓝调时刻 · 冷暖层次',
+    sample: publicAsset('samples/lesson-5.webp'), sampleAlt: '蓝调时刻中带暖色灯光的河岸城市', sampleLabel: '蓝调时刻 · 冷暖层次',
     conceptTitle: '先做层次，再添加颜色倾向',
     concept: 'S 曲线压低阴影、抬高高光以增加对比；随后再给阴影少量冷色、高光少量暖色，情绪才会依附于稳定的明暗结构。',
     observe: '留意暗部是否仍有细节，以及暖色灯光是否保持亮度层次。',
