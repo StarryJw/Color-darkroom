@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, CheckCircle2, ChevronRight, Circle, Eye, ImagePlus, LoaderCircle, RotateCcw, Sparkles, Upload, X } from 'lucide-react';
 import { AdjustmentControls } from '@/components/adjustment-controls';
+import { ColorMixerLesson } from '@/components/color-mixer-lesson';
 import { Button } from '@/components/ui/button';
 import { Progress, ProgressLabel, ProgressValue } from '@/components/ui/progress';
 import { Slider } from '@/components/ui/slider';
 import { createDefaultAdjustments } from '@/lib/defaults';
-import { evaluateTask, isLatestRender, parseProgress, PROGRESS_KEY, validateImageFile } from '@/lib/learning';
+import { evaluateTask, isLatestRender, isMixerLessonComplete, LEGACY_PROGRESS_KEY, parseProgress, PROGRESS_KEY, validateImageFile } from '@/lib/learning';
 import { LESSONS } from '@/lib/lessons';
 import type { AdjustmentState, ProgressState, WorkerResponse } from '@/lib/types';
 // Vite 会在构建时为 ?worker 模块生成默认导出的 Worker 构造器。
@@ -18,6 +19,7 @@ import ImageWorker from '@/workers/image-worker.ts?worker';
 export function ColorLab() {
   const [currentLessonId, setCurrentLessonId] = useState(LESSONS[0].id);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [completedExercises, setCompletedExercises] = useState<string[]>([]);
   const [adjustments, setAdjustments] = useState<AdjustmentState>(() => createDefaultAdjustments());
   const [userPhotoUrl, setUserPhotoUrl] = useState<string | null>(null);
   const [userPhotoName, setUserPhotoName] = useState('');
@@ -38,25 +40,37 @@ export function ColorLab() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const lesson = LESSONS.find((item) => item.id === currentLessonId) ?? LESSONS[0];
-  const sourceUrl = userPhotoUrl ?? lesson.sample;
-  const feedback = useMemo(() => evaluateTask(lesson, adjustments, Boolean(userPhotoUrl)), [lesson, adjustments, userPhotoUrl]);
+  const photoLesson = lesson.kind === 'photo' ? lesson : null;
+  const sourceUrl = photoLesson ? userPhotoUrl ?? photoLesson.sample : null;
+  const feedback = useMemo(() => photoLesson ? evaluateTask(photoLesson, adjustments, Boolean(userPhotoUrl)) : { status: 'idle' as const, message: '' }, [photoLesson, adjustments, userPhotoUrl]);
   const completionPercent = (completedLessons.length / LESSONS.length) * 100;
 
   useEffect(() => {
-    const saved = parseProgress(localStorage.getItem(PROGRESS_KEY), LESSONS[0].id);
-    const validLesson = LESSONS.some((item) => item.id === saved.currentLesson) ? saved.currentLesson : LESSONS[0].id;
-    setCurrentLessonId(validLesson);
-    setCompletedLessons(saved.completedLessons.filter((id) => LESSONS.some((item) => item.id === id)));
+    const validLessons = LESSONS.map((item) => item.id);
+    const validExercises = LESSONS.flatMap((item) => item.kind === 'mixer' ? item.exercises.map((exercise) => exercise.id) : []);
+    const saved = parseProgress(localStorage.getItem(PROGRESS_KEY) ?? localStorage.getItem(LEGACY_PROGRESS_KEY), LESSONS[0].id, validLessons, validExercises);
+    setCurrentLessonId(saved.currentLesson);
+    setCompletedExercises(saved.completedExercises);
+    // 混色章节只有在三道题都完成时才可恢复为完成状态。
+    setCompletedLessons(saved.completedLessons.filter((id) => {
+      const savedLesson = LESSONS.find((item) => item.id === id);
+      return savedLesson?.kind === 'photo' || (savedLesson?.kind === 'mixer' && isMixerLessonComplete(savedLesson, saved.completedExercises));
+    }));
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
-    const progress: ProgressState = { version: 1, currentLesson: currentLessonId, completedLessons, updatedAt: new Date().toISOString() };
+    const progress: ProgressState = { version: 2, currentLesson: currentLessonId, completedLessons, completedExercises, updatedAt: new Date().toISOString() };
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-  }, [completedLessons, currentLessonId, hydrated]);
+  }, [completedExercises, completedLessons, currentLessonId, hydrated]);
 
   useEffect(() => {
+    if (lesson.kind !== 'photo') {
+      workerRef.current = null;
+      sendRenderRef.current = () => undefined;
+      return;
+    }
     const worker = new ImageWorker();
     workerRef.current = worker;
 
@@ -105,9 +119,16 @@ export function ColorLab() {
       renderInFlightRef.current = false;
       pendingRenderRef.current = null;
     };
-  }, []);
+  }, [lesson.kind]);
 
   useEffect(() => {
+    if (!sourceUrl || lesson.kind !== 'photo') {
+      requestRef.current += 1;
+      pendingRenderRef.current = null;
+      setImageReady(false);
+      setRendering(false);
+      return;
+    }
     let cancelled = false;
     requestRef.current += 1;
     pendingRenderRef.current = null;
@@ -146,27 +167,39 @@ export function ColorLab() {
     };
     void loadImage();
     return () => { cancelled = true; };
-  }, [sourceUrl]);
+  }, [lesson.kind, sourceUrl]);
 
   useEffect(() => () => {
     if (userPhotoUrl) URL.revokeObjectURL(userPhotoUrl);
   }, [userPhotoUrl]);
 
   useEffect(() => {
-    if (!imageReady) return;
+    if (!imageReady || lesson.kind !== 'photo') return;
     if (renderInFlightRef.current) {
       pendingRenderRef.current = adjustments;
       setRendering(true);
       return;
     }
     sendRenderRef.current(adjustments);
-  }, [adjustments, imageReady]);
+  }, [adjustments, imageReady, lesson.kind]);
 
   useEffect(() => {
-    if (feedback.status === 'success' && !userPhotoUrl) {
+    if (lesson.kind === 'photo' && feedback.status === 'success' && !userPhotoUrl) {
       setCompletedLessons((current) => current.includes(lesson.id) ? current : [...current, lesson.id]);
     }
-  }, [feedback.status, lesson.id, userPhotoUrl]);
+  }, [feedback.status, lesson, userPhotoUrl]);
+
+  /** 逐题保存混色练习，并仅在三题全部完成后标记对应章节。 */
+  const handleExerciseComplete = useCallback((lessonId: string, exerciseId: string) => {
+    setCompletedExercises((current) => {
+      const next = current.includes(exerciseId) ? current : [...current, exerciseId];
+      const target = LESSONS.find((item) => item.id === lessonId);
+      if (target?.kind === 'mixer' && isMixerLessonComplete(target, next)) {
+        setCompletedLessons((lessons) => lessons.includes(lessonId) ? lessons : [...lessons, lessonId]);
+      }
+      return next;
+    });
+  }, []);
 
   const chooseLesson = useCallback((lessonId: string) => {
     setCurrentLessonId(lessonId);
@@ -197,7 +230,7 @@ export function ColorLab() {
     <main className="min-h-screen bg-background text-foreground">
       <header className="flex h-16 items-center justify-between border-b border-white/7 px-5 lg:px-7">
         <div className="flex items-center gap-3"><span className="brand-mark" aria-hidden="true" /><div><p className="text-sm font-semibold tracking-[0.18em]">色彩暗房</p><p className="text-[10px] text-muted-foreground">把色彩理论，变成看得见的调色练习</p></div></div>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="hidden sm:inline">学习进度</span><div className="hidden w-36 sm:block"><Progress value={completionPercent} className="gap-0"><ProgressLabel className="sr-only">课程进度</ProgressLabel><ProgressValue className="sr-only" /></Progress></div><span className="font-mono text-foreground">{completedLessons.length} / 5</span></div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="hidden sm:inline">学习进度</span><div className="hidden w-36 sm:block"><Progress value={completionPercent} className="gap-0"><ProgressLabel className="sr-only">课程进度</ProgressLabel><ProgressValue className="sr-only" /></Progress></div><span className="font-mono text-foreground">{completedLessons.length} / {LESSONS.length}</span></div>
       </header>
 
       <div className="studio-grid">
@@ -217,6 +250,10 @@ export function ColorLab() {
           <div className="mt-6 rounded-2xl border border-white/7 bg-white/[0.025] p-4 lg:mt-auto"><Sparkles className="mb-3 size-4 text-amber-300" /><p className="text-xs font-medium">观察先于参数</p><p className="mt-1 text-[11px] leading-5 text-muted-foreground">每次只改变一个变量，并用自己的话描述变化。</p></div>
         </aside>
 
+        {lesson.kind === 'mixer' ? (
+          <ColorMixerLesson key={lesson.id} lesson={lesson} completedExercises={completedExercises} onExerciseComplete={(exerciseId) => handleExerciseComplete(lesson.id, exerciseId)} />
+        ) : (
+          <>
         <section className="workbench">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div><p className="eyebrow">{lesson.chapter} · {lesson.shortTitle}</p><h1 className="mt-1 text-xl font-semibold tracking-tight lg:text-2xl">{lesson.title}</h1></div>
@@ -249,8 +286,10 @@ export function ColorLab() {
             <p className="mt-3 text-xs leading-5 text-muted-foreground">{userPhotoUrl ? '试着复现刚才在课程样片上观察到的变化。' : lesson.task}</p>
             <output aria-live="polite" className={`mt-3 block rounded-lg border px-3 py-2 text-[11px] ${feedback.status === 'success' ? 'border-emerald-300/15 bg-emerald-300/[0.06] text-emerald-100' : 'border-cyan-300/15 bg-cyan-300/[0.06] text-cyan-100'}`}>{feedback.message}</output>
           </div>
-          {completedLessons.length === LESSONS.length && <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-xs"><p className="font-semibold text-amber-100">五章已完成</p><p className="mt-1 leading-5 text-muted-foreground">你已经建立了一条从观察到调节的基础路径。接下来请用自己的照片重复练习。</p></div>}
+          {completedLessons.length === LESSONS.length && <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/[0.06] p-4 text-xs"><p className="font-semibold text-amber-100">七章已完成</p><p className="mt-1 leading-5 text-muted-foreground">你已经建立了从观察、照片调节到光色与颜料混合的完整基础路径。</p></div>}
         </aside>
+          </>
+        )}
       </div>
     </main>
   );

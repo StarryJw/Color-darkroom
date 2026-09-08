@@ -131,6 +131,7 @@ body { font-family: var(--font-geist-sans), "Microsoft YaHei", sans-serif; }
   .lesson-item-active { @apply border-cyan-300/15 bg-cyan-300/[0.065]; }
   .image-stage { @apply relative w-full overflow-hidden rounded-[22px] border border-white/10 bg-black shadow-2xl shadow-black/30; }
   .observation-card { @apply rounded-xl border border-white/7 bg-white/[0.025] p-3.5; }
+  .mixer-slot { @apply flex min-w-0 flex-col rounded-2xl border border-white/8 bg-white/[0.025] p-3; }
   .task-card { @apply mt-7 rounded-2xl border border-white/8 bg-white/[0.035] p-4; }
   .spectrum-line { @apply my-6 h-px w-full opacity-70; background: linear-gradient(90deg,#ff5d5d,#ffc857,#79df82,#58d7e8,#748cff,#d56de8,#ff5d5d); }
   .brand-mark { @apply relative block size-8 rounded-full; background: conic-gradient(from 30deg,#f85b5b,#f3ce58,#55d69b,#4bcce6,#7278ec,#e267ca,#f85b5b); box-shadow: inset 0 0 0 8px rgba(13,17,23,.72); }

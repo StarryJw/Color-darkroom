@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { COLOR_BANDS } from '@/lib/defaults';
-import type { AdjustmentState, ColorBand, LessonDefinition } from '@/lib/types';
+import type { AdjustmentState, ColorBand, PhotoLessonDefinition } from '@/lib/types';
 import { ColorWheel } from './color-wheel';
 import { ToneCurve } from './tone-curve';
 
 interface ControlsProps {
-  lesson: LessonDefinition;
+  lesson: PhotoLessonDefinition;
   adjustments: AdjustmentState;
   onChange: (value: AdjustmentState) => void;
 }

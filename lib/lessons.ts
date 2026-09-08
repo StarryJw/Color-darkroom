@@ -5,6 +5,7 @@ const publicAsset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 export const LESSONS: LessonDefinition[] = [
   {
+    kind: 'photo',
     id: 'color-dimensions', chapter: '第一章', shortTitle: '色彩三属性', title: '看见颜色的三个维度',
     sample: publicAsset('samples/lesson-1.webp'), sampleAlt: '中性日光中的多色桌面静物', sampleLabel: '中性光 · 多色静物',
     conceptTitle: '饱和度不是“颜色多少”',
@@ -19,6 +20,7 @@ export const LESSONS: LessonDefinition[] = [
     ],
   },
   {
+    kind: 'photo',
     id: 'white-balance', chapter: '第二章', shortTitle: '白平衡', title: '让中性色重新中性',
     sample: publicAsset('samples/lesson-2.webp'), sampleAlt: '暖钨丝灯下的咖啡桌与白色陶瓷杯', sampleLabel: '钨丝灯 · 暖色偏移',
     conceptTitle: '白平衡先找“应该中性”的物体',
@@ -33,6 +35,7 @@ export const LESSONS: LessonDefinition[] = [
     ],
   },
   {
+    kind: 'photo',
     id: 'color-harmony', chapter: '第三章', shortTitle: '色彩关系', title: '用色相距离理解画面张力',
     sample: publicAsset('samples/lesson-3.webp'), sampleAlt: '蓝绿色木门与橙色墙面的街景', sampleLabel: '街景 · 蓝橙互补',
     conceptTitle: '互补色来自色轮两端',
@@ -44,6 +47,7 @@ export const LESSONS: LessonDefinition[] = [
     constraints: [{ kind: 'harmony', minDifference: 170, maxDifference: 190, hint: '继续拉开两个色相点，目标是位于色轮两端。' }],
   },
   {
+    kind: 'photo',
     id: 'selective-hsl', chapter: '第四章', shortTitle: '分颜色 HSL', title: '只调整需要改变的颜色',
     sample: publicAsset('samples/lesson-4.webp'), sampleAlt: '暖色衣服的人像与绿色植物背景', sampleLabel: '人像 · 暖肤色与绿色背景',
     conceptTitle: '局部颜色调整需要软边界',
@@ -58,6 +62,7 @@ export const LESSONS: LessonDefinition[] = [
     ],
   },
   {
+    kind: 'photo',
     id: 'curves-grading', chapter: '第五章', shortTitle: '曲线与色调', title: '用明暗结构承载冷暖情绪',
     sample: publicAsset('samples/lesson-5.webp'), sampleAlt: '蓝调时刻中带暖色灯光的河岸城市', sampleLabel: '蓝调时刻 · 冷暖层次',
     conceptTitle: '先做层次，再添加颜色倾向',
@@ -71,6 +76,166 @@ export const LESSONS: LessonDefinition[] = [
       { kind: 'parameter', path: 'curve.2.y', min: 204, max: 220, lowHint: '再抬高一点高光，形成曲线上半段。', highHint: '高光提升过多，降低右侧控制点。' },
       { kind: 'parameter', path: 'shadows.amount', min: 8, max: 22, lowHint: '增加少量冷阴影强度。', highHint: '冷阴影太明显，降低强度。' },
       { kind: 'parameter', path: 'highlights.amount', min: 8, max: 22, lowHint: '增加少量暖高光强度。', highHint: '暖高光太明显，降低强度。' },
+    ],
+  },
+  {
+    kind: 'mixer',
+    id: 'additive-light',
+    chapter: '第六章',
+    shortTitle: '光色混合',
+    title: '用 RGB 光线叠出新的颜色',
+    conceptTitle: '光越叠加，结果越接近白',
+    concept: '屏幕与摄影中的光采用加色混合。每束光先在线性空间累加能量，再编码回屏幕使用的 sRGB；红、绿、蓝等强叠加会得到白光。',
+    observe: '预测前先判断每束光贡献了哪些 RGB 通道，再留意强度变化是否会触发通道裁剪。',
+    mistake: '不要把光色与颜料混为一谈：红光加绿光是黄光，并不会得到棕色颜料。',
+    task: '完成三个预测练习，再到自由调色盘改变每束光的独立强度。',
+    model: 'additive-light',
+    modelLabel: 'RGB 加色模型',
+    presets: [
+      { label: '红光', color: '#FF0000' },
+      { label: '绿光', color: '#00FF00' },
+      { label: '蓝光', color: '#0000FF' },
+      { label: '暖橙', color: '#FF7A00' },
+      { label: '紫光', color: '#B000FF' },
+      { label: '青光', color: '#00DDEB' },
+    ],
+    exercises: [
+      {
+        id: 'light-red-green',
+        prompt: '红光与绿光以相同强度叠加，会出现哪种光？',
+        inputs: [
+          { id: 'red', label: '红光', color: '#FF0000', amount: 100, enabled: true },
+          { id: 'green', label: '绿光', color: '#00FF00', amount: 100, enabled: true },
+        ],
+        choices: [
+          { id: 'orange', label: '橙光', color: '#FF7900' },
+          { id: 'yellow', label: '黄光', color: '#FFFF00' },
+          { id: 'brown', label: '棕色', color: '#7A471F' },
+        ],
+        correctAnswer: 'yellow',
+        resultLabel: '黄光',
+        explanation: '红光贡献 R 通道，绿光贡献 G 通道；两者等强相加得到 R+G，也就是黄光。',
+      },
+      {
+        id: 'light-green-blue',
+        prompt: '绿光与蓝光以相同强度叠加，会出现哪种光？',
+        inputs: [
+          { id: 'green', label: '绿光', color: '#00FF00', amount: 100, enabled: true },
+          { id: 'blue', label: '蓝光', color: '#0000FF', amount: 100, enabled: true },
+        ],
+        choices: [
+          { id: 'cyan', label: '青光', color: '#00FFFF' },
+          { id: 'violet', label: '紫光', color: '#7B39E8' },
+          { id: 'dark-green', label: '深绿', color: '#17633C' },
+        ],
+        correctAnswer: 'cyan',
+        resultLabel: '青光',
+        explanation: '绿光和蓝光分别点亮 G、B 通道，等强叠加得到青光。',
+      },
+      {
+        id: 'light-rgb-white',
+        prompt: '红、绿、蓝三色光等强叠加，最终会接近什么颜色？',
+        inputs: [
+          { id: 'red', label: '红光', color: '#FF0000', amount: 100, enabled: true },
+          { id: 'green', label: '绿光', color: '#00FF00', amount: 100, enabled: true },
+          { id: 'blue', label: '蓝光', color: '#0000FF', amount: 100, enabled: true },
+        ],
+        choices: [
+          { id: 'gray', label: '中灰', color: '#808080' },
+          { id: 'white', label: '白光', color: '#FFFFFF' },
+          { id: 'black', label: '黑色', color: '#000000' },
+        ],
+        correctAnswer: 'white',
+        resultLabel: '白光',
+        explanation: '三个 sRGB 主通道都达到最大值时形成白光；光的叠加使能量增加，而不是变暗。',
+      },
+    ],
+  },
+  {
+    kind: 'mixer',
+    id: 'pigment-tone',
+    chapter: '第七章',
+    shortTitle: '颜料与综合色调',
+    title: '比较颜料减色与 tint、tone、shade',
+    conceptTitle: '颜料混合会吸收更多光',
+    concept: '颜料采用减色混合：每种材料吸收一部分波段，混合后通常更暗、更灰。加入白、灰、黑则分别形成 tint、tone、shade。',
+    observe: '比较混合前后的明度与纯度，观察“综合色”如何随颜料份数和中性色变化。',
+    mistake: '屏幕上的光谱模拟是教学近似，真实颜料还会受材质、浓度、纸张和光源影响。',
+    task: '完成三个预测练习，并在自由调色盘中比较白、灰、黑对同一颜色的影响。',
+    model: 'spectral-pigment',
+    modelLabel: 'Kubelka–Munk 光谱近似',
+    presets: [
+      { label: '钴蓝', color: '#002185' },
+      { label: '黄色', color: '#FCD200' },
+      { label: '朱红', color: '#D9272E' },
+      { label: '青色', color: '#00A6C8' },
+      { label: '白色', color: '#FFFFFF' },
+      { label: '中灰', color: '#808080' },
+      { label: '黑色', color: '#000000' },
+    ],
+    exercises: [
+      {
+        id: 'pigment-blue-yellow',
+        prompt: '钴蓝与黄色颜料等份混合，最可能得到哪种综合色？',
+        inputs: [
+          { id: 'cobalt', label: '钴蓝', color: '#002185', amount: 50, enabled: true },
+          { id: 'yellow', label: '黄色', color: '#FCD200', amount: 50, enabled: true },
+        ],
+        choices: [
+          { id: 'bright-white', label: '亮白', color: '#FFFFFF' },
+          { id: 'green', label: '绿色系', color: '#3D933E' },
+          { id: 'violet', label: '紫色系', color: '#7546A8' },
+        ],
+        correctAnswer: 'green',
+        resultLabel: '绿色系颜料',
+        explanation: '蓝、黄颜料共同吸收更多波段，剩余反射以绿色为主；光谱近似结果约为 #3D933E。',
+      },
+      {
+        id: 'pigment-complements',
+        prompt: '红色与青色这组互补颜料等份混合，纯度和明度通常怎样变化？',
+        inputs: [
+          { id: 'red', label: '朱红', color: '#D9272E', amount: 50, enabled: true },
+          { id: 'cyan', label: '青色', color: '#00A6C8', amount: 50, enabled: true },
+        ],
+        choices: [
+          { id: 'neutral', label: '更暗、更灰的中性色', color: '#565058' },
+          { id: 'white', label: '高亮白色', color: '#FFFFFF' },
+          { id: 'saturated', label: '更鲜艳的洋红', color: '#F000B8' },
+        ],
+        correctAnswer: 'neutral',
+        resultLabel: '较暗的灰紫中性色',
+        explanation: '互补颜料吸收的波段相互补充，综合色纯度下降且通常更暗，本组近似为 #565058。',
+      },
+      {
+        id: 'pigment-tint-tone-shade',
+        comparisons: [
+          { label: 'Tint · 蓝色 + 白色', inputs: [
+            { id: 'blue', label: '蓝色', color: '#2F55A4', amount: 50, enabled: true },
+            { id: 'white', label: '白色', color: '#FFFFFF', amount: 50, enabled: true },
+          ] },
+          { label: 'Tone · 蓝色 + 灰色', inputs: [
+            { id: 'blue', label: '蓝色', color: '#2F55A4', amount: 50, enabled: true },
+            { id: 'gray', label: '灰色', color: '#808080', amount: 50, enabled: true },
+          ] },
+          { label: 'Shade · 蓝色 + 黑色', inputs: [
+            { id: 'blue', label: '蓝色', color: '#2F55A4', amount: 50, enabled: true },
+            { id: 'black', label: '黑色', color: '#000000', amount: 50, enabled: true },
+          ] },
+        ],
+        prompt: '同一蓝色分别加入白、灰、黑时，哪组术语匹配正确？',
+        inputs: [
+          { id: 'blue', label: '蓝色', color: '#2F55A4', amount: 50, enabled: true },
+          { id: 'white', label: '白色', color: '#FFFFFF', amount: 50, enabled: true },
+        ],
+        choices: [
+          { id: 'tts', label: '白 → Tint · 灰 → Tone · 黑 → Shade', color: '#83B0E0', swatches: ['#83B0E0', '#4E6E8A', '#2B3F4F'] },
+          { id: 'stt', label: '白 → Shade · 灰 → Tint · 黑 → Tone', color: '#2B3F4F', swatches: ['#2B3F4F', '#83B0E0', '#4E6E8A'] },
+          { id: 'tst', label: '白 → Tone · 灰 → Shade · 黑 → Tint', color: '#4E6E8A', swatches: ['#4E6E8A', '#2B3F4F', '#83B0E0'] },
+        ],
+        correctAnswer: 'tts',
+        resultLabel: 'Tint、Tone、Shade',
+        explanation: '加入白色提高明度形成 tint；加入灰色降低纯度形成 tone；加入黑色降低明度形成 shade。',
+      },
     ],
   },
 ];
